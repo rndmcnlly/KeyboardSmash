@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KeyboardSmash</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.js" integrity="sha512-H05oT7BAjM9Ai1IaFX9zr61NtE2e1P0MkTz3AZXBnseaJSAOt2FGMFJ+vVGutaJxEGA1jxUiYsTBYQNE08/Erw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        class Demo extends Phaser.Scene {
+            constructor() {
+                super('demo');
+            }
+            create() {
+                window.demo = this;
+                this.message = this.add.text(10,10,'> ');
+
+                // Tell me when a specific key is pressed.
+                let one = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
+                one.on('down', () => this.show('1'));
+
+                // Tell me if *any* key is pressed,
+                // and then I'll check the status of keys I care about.
+                let two = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
+                this.input.keyboard.on('keydown', () => {
+                    if (two.isDown) {
+                        this.show('2');
+                    }
+                });
+
+                // I can inspect low-level keyboard events!
+                this.input.keyboard.on('keydown', (event) => {
+                    console.log('keydown event', event);
+                    if(event.key >= '3' && event.key <= '9') {
+                        this.show(event.key);
+                    }
+                });
+
+                // A quick way to handle named keys:
+                this.input.keyboard.on('keydown-BACKSPACE', () => {
+                    this.message.text = '> ';
+                });
+
+                // Create some keys that I can check in update()
+                this.cursors = this.input.keyboard.createCursorKeys();
+            }
+
+            show(key) {
+                this.message.text += key;
+                this.tweens.add({
+                    targets: this.message,
+                    x: {from: 5, to: 10},
+                    duration: 500,
+                    ease: 'Cubic.out',
+                })
+            }
+
+            update() {
+                let speed = this.cursors.shift.isDown ? 5 : 1;
+                if(this.cursors.down.isDown) {
+                    this.message.y += speed;
+                }
+                if(this.cursors.up.isDown) {
+                    this.message.y -= speed;
+                }
+            }
+        }
+
+        let game = new Phaser.Game({
+            width: 640,
+            height: 120,
+            scene: [Demo],
+            parent: 'here'
+        });
+    </script>
+</head>
+<body>
+    <div id="here"></div>
+    Use the number keys to add characters.<br/>
+    Use backspace to clear the message.<br/>
+    Use arrow keys to drive the text around (shift to run).
+</body>
+</html>
